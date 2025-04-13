@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProScreen Recorder - Advanced Screen Capture Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+            --danger-color: #f72585;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --border-radius: 8px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --recording-red: #ff3a30;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .recorder-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: slideUp 0.6s ease;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background-color: var(--dark-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #previewVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background-color: black;
+            transition: var(--transition);
+        }
+
+        #recordedVideo {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            background-color: black;
+            display: none;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+            z-index: 10;
+        }
+
+        .recording-indicator-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 10;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-recording {
+            background-color: var(--recording-red);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .btn-recording:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .recording-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: rgba(247, 37, 133, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+        }
+
+        .pulse {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--danger-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        .file-size {
+            background: rgba(67, 97, 238, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        select, input {
+            padding: 0.7rem;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: white;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 1.5rem;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tab-btn:after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .tab-btn:hover:after {
+            width: 100%;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark-color);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: var(--danger-color);
+        }
+
+        .toast.warning {
+            background: var(--warning-color);
+        }
+
+        .settings-panel {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .settings-panel h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .settings-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        .advanced-options {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .toggle-advanced {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .keyboard-shortcuts {
+            margin-top: 1.5rem;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .shortcut-key {
+            background: #f0f0f0;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            font-size: 10rem;
+            color: white;
+            font-weight: bold;
+            display: none;
+        }
+
+        .annotation-tools {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+            display: none;
+        }
+
+        .annotation-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .annotation-btn:hover {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .annotation-btn.active {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .color-picker {
+            width: 30px;
+            height: 30px;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .brush-size {
+            width: 80px;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .brush-size::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .canvas-container.active {
+            pointer-events: all;
+        }
+
+        .recording-hotkey {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 10;
+            display: none;
+        }
+
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            z-index: 1;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(247, 37, 133, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(247, 37, 133, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(247, 37, 133, 0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes countdown {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(0.5); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .video-container {
+                height: 300px;
+            }
+
+            .recording-info {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+            .countdown-overlay {
+                font-size: 6rem;
+            }
+
+            .annotation-tools {
+                bottom: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 90%;
+            }
+
+            .annotation-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ProScreen Recorder</h1>
+            <p class="subtitle">Capture your screen with professional quality and intuitive controls. Perfect for tutorials, presentations, and demos.</p>
+        </header>
+
+        <div class="recorder-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="record">
+                    <i class="fas fa-video"></i> Record
+                </button>
+                <button class="tab-btn" data-tab="playback">
+                    <i class="fas fa-play-circle"></i> Playback
+                </button>
+            </div>
+
+            <div class="tab-content active" id="record-tab">
+                <div class="video-container">
+                    <video id="previewVideo" autoplay muted></video>
+                    <div class="video-overlay" id="resolutionInfo"></div>
+                    <div class="recording-indicator-container" id="recordingIndicatorContainer">
+                        <div class="pulse"></div>
+                        <span>REC</span>
+                        <div class="timer" id="overlayTimer">00:00:00</div>
+                    </div>
+                    <div class="watermark" id="watermark">Recorded with ProScreen</div>
+                    <div class="recording-hotkey" id="recordingHotkey">Press <strong>Ctrl+Shift+S</strong> to stop</div>
+                    <div class="canvas-container" id="canvasContainer">
+                        <canvas id="annotationCanvas"></canvas>
+                    </div>
+                    <div class="annotation-tools" id="annotationTools">
+                        <button class="annotation-btn" id="penTool" title="Pen"><i class="fas fa-pen"></i></button>
+                        <button class="annotation-btn" id="arrowTool" title="Arrow"><i class="fas fa-arrow-right"></i></button>
+                        <button class="annotation-btn" id="rectangleTool" title="Rectangle"><i class="fas fa-square"></i></button>
+                        <button class="annotation-btn" id="circleTool" title="Circle"><i class="fas fa-circle"></i></button>
+                        <button class="annotation-btn" id="textTool" title="Text"><i class="fas fa-font"></i></button>
+                        <button class="annotation-btn" id="highlightTool" title="Highlight"><i class="fas fa-highlighter"></i></button>
+                        <input type="color" id="colorPicker" class="color-picker" value="#FF0000" title="Color">
+                        <input type="range" min="1" max="20" value="3" class="brush-size" id="brushSize" title="Brush Size">
+                        <button class="annotation-btn" id="clearAnnotations" title="Clear All"><i class="fas fa-trash"></i></button>
+                        <button class="annotation-btn" id="hideTools" title="Hide Tools"><i class="fas fa-eye-slash"></i></button>
+                    </div>
+                </div>
+
+                <div class="recording-info">
+                    <div class="recording-indicator">
+                        <div class="pulse"></div>
+                        <span>Recording in progress</span>
+                    </div>
+                    <div class="timer" id="timerDisplay">00:00:00</div>
+                    <div class="file-size" id="fileSize">0 MB</div>
+                </div>
+
+                <div class="options">
+                    <div class="option-group">
+                        <label for="videoSource"><i class="fas fa-desktop"></i> Video Source</label>
+                        <select id="videoSource">
+                            <option value="screen">Entire Screen</option>
+                            <option value="window">Application Window</option>
+                            <option value="tab">Browser Tab</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="audioSource"><i class="fas fa-microphone"></i> Audio Source</label>
+                        <select id="audioSource">
+                            <option value="none">No Audio</option>
+                            <option value="mic" selected>Microphone</option>
+                            <option value="system">System Audio</option>
+                            <option value="both">Microphone + System</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="videoQuality"><i class="fas fa-film"></i> Video Quality</label>
+                        <select id="videoQuality">
+                            <option value="ultra">Ultra HD (4K)</option>
+                            <option value="high">Full HD (1080p)</option>
+                            <option value="medium" selected>HD (720p)</option>
+                            <option value="low">SD (480p)</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="frameRate"><i class="fas fa-tachometer-alt"></i> Frame Rate</label>
+                        <select id="frameRate">
+                            <option value="60">60 FPS (Smooth)</option>
+                            <option value="30" selected>30 FPS (Standard)</option>
+                            <option value="24">24 FPS (Cinematic)</option>
+                            <option value="15">15 FPS (Low Motion)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="settings-toggle" id="settingsToggle">
+                    <i class="fas fa-cog"></i> Advanced Settings
+                </button>
+
+                <div class="settings-panel" id="settingsPanel">
+                    <h3><i class="fas fa-sliders-h"></i> Recording Settings</h3>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showCursor" checked>
+                        <label for="showCursor">Show mouse cursor</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="recordMic" checked>
+                        <label for="recordMic">Enable microphone noise reduction</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showTimer" checked>
+                        <label for="showTimer">Display timer on recording</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showWatermark">
+                        <label for="showWatermark">Add watermark to recording</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="countdownEnabled" checked>
+                        <label for="countdownEnabled">Enable countdown before recording</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="annotationsEnabled" checked>
+                        <label for="annotationsEnabled">Enable drawing tools during recording</label>
+                    </div>
+                    
+                    <button class="toggle-advanced" id="toggleAdvanced">
+                        <i class="fas fa-chevron-down"></i> Show Advanced Options
+                    </button>
+                    
+                    <div class="advanced-options" id="advancedOptions">
+                        <div class="option-group">
+                            <label for="videoCodec"><i class="fas fa-code"></i> Video Codec</label>
+                            <select id="videoCodec">
+                                <option value="vp9">VP9 (WebM)</option>
+                                <option value="h264" selected>H.264 (MP4)</option>
+                                <option value="vp8">VP8 (WebM)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label for="audioBitrate"><i class="fas fa-music"></i> Audio Bitrate</label>
+                            <select id="audioBitrate">
+                                <option value="128">128 kbps (Good)</option>
+                                <option value="192" selected>192 kbps (Better)</option>
+                                <option value="256">256 kbps (Best)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label for="videoBitrate"><i class="fas fa-film"></i> Video Bitrate</label>
+                            <select id="videoBitrate">
+                                <option value="1000">1 Mbps (Low)</option>
+                                <option value="2500" selected>2.5 Mbps (Medium)</option>
+                                <option value="5000">5 Mbps (High)</option>
+                                <option value="10000">10 Mbps (Ultra)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="keyboard-shortcuts">
+                        <h3><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h3>
+                        <div class="shortcut-item">
+                            <span>Start/Stop Recording</span>
+                            <span class="shortcut-key">Ctrl+Shift+R</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Pause/Resume</span>
+                            <span class="shortcut-key">Ctrl+Shift+P</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Toggle Mic</span>
+                            <span class="shortcut-key">Ctrl+Shift+M</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Toggle Annotations</span>
+                            <span class="shortcut-key">Ctrl+Shift+D</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span>Quick Stop</span>
+                            <span class="shortcut-key">Ctrl+Shift+S</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="startBtn" class="btn btn-primary">
+                        <i class="fas fa-circle"></i> Start Recording
+                    </button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>
+                        <i class="fas fa-stop"></i> Stop
+                    </button>
+                    <button id="pauseBtn" class="btn btn-warning" disabled>
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <button id="resumeBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-play"></i> Resume
+                    </button>
+                    <button id="micToggleBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-microphone"></i> Mute Mic
+                    </button>
+                    <button id="annotateBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-pen"></i> Draw
+                    </button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="playback-tab">
+                <div class="video-container">
+                    <video id="recordedVideo" controls></video>
+                </div>
+
+                <div class="download-section">
+                    <div class="recording-info" style="justify-content: center;">
+                        <div class="timer" id="finalDuration">00:00:00</div>
+                        <div class="file-size" id="finalFileSize">0 MB</div>
+                    </div>
+                    
+                    <div class="controls" style="justify-content: center;">
+                        <button id="downloadBtn" class="btn btn-success">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button id="saveToCloudBtn" class="btn btn-primary">
+                            <i class="fas fa-cloud-upload-alt"></i> Save to Cloud
+                        </button>
+                        <button id="newRecordingBtn" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> New Recording
+                        </button>
+                    </div>
+                    
+                    <div class="share-options" style="margin-top: 1rem;">
+                        <button id="copyLinkBtn" class="btn" style="background: #7289da; color: white;">
+                            <i class="fab fa-discord"></i> Copy Share Link
+                        </button>
+                        <button id="exportGifBtn" class="btn" style="background: #ff6b6b; color: white;">
+                            <i class="fas fa-file-image"></i> Export as GIF
+                        </button>
+                        <button id="trimVideoBtn" class="btn" style="background: #6c5ce7; color: white;">
+                            <i class="fas fa-cut"></i> Trim Video
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>ProScreen Recorder &copy; <span id="year"></span> | All rights reserved | <a href="#" style="color: var(--primary-color);">Privacy Policy</a> | <a href="#" style="color: var(--primary-color);">Terms of Service</a></p>
+        </footer>
+    </div>
+
+    <div class="countdown-overlay" id="countdownOverlay">
+        <div id="countdownNumber">3</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set current year in footer
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            // Tab functionality
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+
+                    // Add active class to clicked tab
+                    btn.classList.add('active');
+                    const tabId = btn.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+
+            // Toggle settings panel
+            const settingsToggle = document.getElementById('settingsToggle');
+            const settingsPanel = document.getElementById('settingsPanel');
+            
+            settingsToggle.addEventListener('click', () => {
+                settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
+                settingsToggle.innerHTML = settingsPanel.style.display === 'block' ? 
+                    '<i class="fas fa-cog"></i> Hide Settings' : 
+                    '<i class="fas fa-cog"></i> Advanced Settings';
+            });
+
+            // Toggle advanced options
+            const toggleAdvanced = document.getElementById('toggleAdvanced');
+            const advancedOptions = document.getElementById('advancedOptions');
+            
+            toggleAdvanced.addEventListener('click', () => {
+                advancedOptions.style.display = advancedOptions.style.display === 'block' ? 'none' : 'block';
+                toggleAdvanced.innerHTML = advancedOptions.style.display === 'block' ? 
+                    '<i class="fas fa-chevron-up"></i> Hide Advanced Options' : 
+                    '<i class="fas fa-chevron-down"></i> Show Advanced Options';
+            });
+
+            // Screen recording functionality
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resumeBtn = document.getElementById('resumeBtn');
+            const micToggleBtn = document.getElementById('micToggleBtn');
+            const annotateBtn = document.getElementById('annotateBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const saveToCloudBtn = document.getElementById('saveToCloudBtn');
+            const newRecordingBtn = document.getElementById('newRecordingBtn');
+            const copyLinkBtn = document.getElementById('copyLinkBtn');
+            const exportGifBtn = document.getElementById('exportGifBtn');
+            const trimVideoBtn = document.getElementById('trimVideoBtn');
+            const previewVideo = document.getElementById('previewVideo');
+            const recordedVideo = document.getElementById('recordedVideo');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const overlayTimer = document.getElementById('overlayTimer');
+            const finalDuration = document.getElementById('finalDuration');
+            const recordingIndicator = document.querySelector('.recording-indicator');
+            const recordingIndicatorContainer = document.getElementById('recordingIndicatorContainer');
+            const fileSizeDisplay = document.getElementById('fileSize');
+            const finalFileSize = document.getElementById('finalFileSize');
+            const downloadSection = document.querySelector('.download-section');
+            const videoSourceSelect = document.getElementById('videoSource');
+            const audioSourceSelect = document.getElementById('audioSource');
+            const videoQualitySelect = document.getElementById('videoQuality');
+            const frameRateSelect = document.getElementById('frameRate');
+            const videoCodecSelect = document.getElementById('videoCodec');
+            const audioBitrateSelect = document.getElementById('audioBitrate');
+            const videoBitrateSelect = document.getElementById('videoBitrate');
+            const showCursorCheckbox = document.getElementById('showCursor');
+            const recordMicCheckbox = document.getElementById('recordMic');
+            const showTimerCheckbox = document.getElementById('showTimer');
+            const showWatermarkCheckbox = document.getElementById('showWatermark');
+            const countdownEnabledCheckbox = document.getElementById('countdownEnabled');
+            const annotationsEnabledCheckbox = document.getElementById('annotationsEnabled');
+            const resolutionInfo = document.getElementById('resolutionInfo');
+            const watermark = document.getElementById('watermark');
+            const recordingHotkey = document.getElementById('recordingHotkey');
+            const toast = document.getElementById('toast');
+            const countdownOverlay = document.getElementById('countdownOverlay');
+            const countdownNumber = document.getElementById('countdownNumber');
+            
+            // Annotation tools
+            const canvasContainer = document.getElementById('canvasContainer');
+            const annotationCanvas = document.getElementById('annotationCanvas');
+            const annotationTools = document.getElementById('annotationTools');
+            const penTool = document.getElementById('penTool');
+            const arrowTool = document.getElementById('arrowTool');
+            const rectangleTool = document.getElementById('rectangleTool');
+            const circleTool = document.getElementById('circleTool');
+            const textTool = document.getElementById('textTool');
+            const highlightTool = document.getElementById('highlightTool');
+            const colorPicker = document.getElementById('colorPicker');
+            const brushSize = document.getElementById('brushSize');
+            const clearAnnotations = document.getElementById('clearAnnotations');
+            const hideTools = document.getElementById('hideTools');
+            
+            let mediaRecorder;
+            let recordedChunks = [];
+            let timerInterval;
+            let seconds = 0;
+            let minutes = 0;
+            let hours = 0;
+            let stream;
+            let audioStream;
+            let micEnabled = true;
+            let fileSize = 0;
+            let startTime;
+            let isRecording = false;
+            let isPaused = false;
+            let isDrawing = false;
+            let currentTool = 'pen';
+            let currentColor = '#FF0000';
+            let currentBrushSize = 3;
+            let ctx;
+            let isDrawingActive = false;
+            let drawingStartX, drawingStartY;
+            let textInputActive = false;
+
+            // Initialize canvas
+            function initCanvas() {
+                annotationCanvas.width = previewVideo.offsetWidth;
+                annotationCanvas.height = previewVideo.offsetHeight;
+                ctx = annotationCanvas.getContext('2d');
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                
+                // Redraw canvas when window resizes
+                window.addEventListener('resize', () => {
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.width = annotationCanvas.width;
+                    tempCanvas.height = annotationCanvas.height;
+                    tempCtx.drawImage(annotationCanvas, 0, 0);
+                    
+                    annotationCanvas.width = previewVideo.offsetWidth;
+                    annotationCanvas.height = previewVideo.offsetHeight;
+                    
+                    const ratioX = annotationCanvas.width / tempCanvas.width;
+                    const ratioY = annotationCanvas.height / tempCanvas.height;
+                    
+                    ctx.save();
+                    ctx.scale(ratioX, ratioY);
+                    ctx.drawImage(tempCanvas, 0, 0);
+                    ctx.restore();
+                });
+            }
+
+            // Setup drawing tools
+            function setupDrawingTools() {
+                // Set initial color and brush size
+                currentColor = colorPicker.value;
+                currentBrushSize = brushSize.value;
+                
+                // Event listeners for tools
+                penTool.addEventListener('click', () => {
+                    currentTool = 'pen';
+                    setActiveTool(penTool);
+                });
+                
+                arrowTool.addEventListener('click', () => {
+                    currentTool = 'arrow';
+                    setActiveTool(arrowTool);
+                });
+                
+                rectangleTool.addEventListener('click', () => {
+                    currentTool = 'rectangle';
+                    setActiveTool(rectangleTool);
+                });
+                
+                circleTool.addEventListener('click', () => {
+                    currentTool = 'circle';
+                    setActiveTool(circleTool);
+                });
+                
+                textTool.addEventListener('click', () => {
+                    currentTool = 'text';
+                    setActiveTool(textTool);
+                });
+                
+                highlightTool.addEventListener('click', () => {
+                    currentTool = 'highlight';
+                    setActiveTool(highlightTool);
+                });
+                
+                colorPicker.addEventListener('input', (e) => {
+                    currentColor = e.target.value;
+                });
+                
+                brushSize.addEventListener('input', (e) => {
+                    currentBrushSize = e.target.value;
+                });
+                
+                clearAnnotations.addEventListener('click', () => {
+                    ctx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+                });
+                
+                hideTools.addEventListener('click', () => {
+                    toggleDrawing(false);
+                });
+                
+                // Set pen as default active tool
+                setActiveTool(penTool);
+                
+                // Canvas event listeners
+                annotationCanvas.addEventListener('mousedown', startDrawing);
+                annotationCanvas.addEventListener('mousemove', draw);
+                annotationCanvas.addEventListener('mouseup', stopDrawing);
+                annotationCanvas.addEventListener('mouseout', stopDrawing);
+                
+                annotationCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+                annotationCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+                annotationCanvas.addEventListener('touchend', handleTouchEnd);
+            }
+            
+            function setActiveTool(toolBtn) {
+                // Remove active class from all tools
+                document.querySelectorAll('.annotation-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to selected tool
+                toolBtn.classList.add('active');
+            }
+            
+            function startDrawing(e) {
+                if (!isDrawingActive || textInputActive) return;
+                
+                isDrawing = true;
+                const rect = annotationCanvas.getBoundingClientRect();
+                drawingStartX = (e.clientX || e.touches[0].clientX) - rect.left;
+                drawingStartY = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                if (currentTool === 'text') {
+                    textInputActive = true;
+                    const text = prompt('Enter text:', '');
+                    if (text) {
+                        ctx.font = `${currentBrushSize * 5}px Arial`;
+                        ctx.fillStyle = currentColor;
+                        ctx.fillText(text, drawingStartX, drawingStartY);
+                    }
+                    textInputActive = false;
+                    isDrawing = false;
+                    return;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(drawingStartX, drawingStartY);
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = currentBrushSize;
+                
+                if (currentTool === 'highlight') {
+                    ctx.globalAlpha = 0.3;
+                } else {
+                    ctx.globalAlpha = 1;
+                }
+            }
+            
+            function draw(e) {
+                if (!isDrawing || !isDrawingActive || textInputActive) return;
+                e.preventDefault();
+                
+                const rect = annotationCanvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                if (currentTool === 'pen' || currentTool === 'highlight') {
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                } else if (currentTool === 'arrow') {
+                    // Clear and redraw for shapes
+                    ctx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+                    drawArrow(drawingStartX, drawingStartY, x, y);
+                } else if (currentTool === 'rectangle') {
+                    ctx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+                    drawRectangle(drawingStartX, drawingStartY, x, y);
+                } else if (currentTool === 'circle') {
+                    ctx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+                    drawCircle(drawingStartX, drawingStartY, x, y);
+                }
+            }
+            
+            function stopDrawing() {
+                isDrawing = false;
+                ctx.globalAlpha = 1;
+            }
+            
+            // Touch event handlers
+            function handleTouchStart(e) {
+                e.preventDefault();
+                startDrawing(e);
+            }
+            
+            function handleTouchMove(e) {
+                e.preventDefault();
+                draw(e);
+            }
+            
+            function handleTouchEnd(e) {
+                e.preventDefault();
+                stopDrawing();
+            }
+            
+            // Shape drawing functions
+            function drawArrow(fromX, fromY, toX, toY) {
+                const headLength = currentBrushSize * 5;
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                
+                // Draw line
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.stroke();
+                
+                // Draw arrow head
+                ctx.beginPath();
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(
+                    toX - headLength * Math.cos(angle - Math.PI / 6),
+                    toY - headLength * Math.sin(angle - Math.PI / 6)
+                );
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(
+                    toX - headLength * Math.cos(angle + Math.PI / 6),
+                    toY - headLength * Math.sin(angle + Math.PI / 6)
+                );
+                ctx.stroke();
+            }
+            
+            function drawRectangle(fromX, fromY, toX, toY) {
+                ctx.beginPath();
+                ctx.rect(fromX, fromY, toX - fromX, toY - fromY);
+                ctx.stroke();
+            }
+            
+            function drawCircle(fromX, fromY, toX, toY) {
+                const radius = Math.sqrt(
+                    Math.pow(toX - fromX, 2) + 
+                    Math.pow(toY - fromY, 2)
+                );
+                ctx.beginPath();
+                ctx.arc(fromX, fromY, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+            
+            // Toggle drawing mode
+            function toggleDrawing(enable) {
+                isDrawingActive = enable;
+                if (enable) {
+                    canvasContainer.classList.add('active');
+                    annotationTools.style.display = 'flex';
+                    annotateBtn.innerHTML = '<i class="fas fa-pen"></i> Stop Drawing';
+                    annotateBtn.classList.add('btn-recording');
+                } else {
+                    canvasContainer.classList.remove('active');
+                    annotationTools.style.display = 'none';
+                    annotateBtn.innerHTML = '<i class="fas fa-pen"></i> Draw';
+                    annotateBtn.classList.remove('btn-recording');
+                }
+            }
+
+            // Show toast notification
+            function showToast(message, type = 'success', duration = 3000) {
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+
+            // Format time display
+            function formatTime() {
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            // Update timer display
+            function updateTimer() {
+                seconds++;
+                if (seconds === 60) {
+                    seconds = 0;
+                    minutes++;
+                }
+                if (minutes === 60) {
+                    minutes = 0;
+                    hours++;
+                }
+                timerDisplay.textContent = formatTime();
+                overlayTimer.textContent = formatTime();
+                
+                // Update file size estimation (very rough estimation)
+                const elapsed = (hours * 3600) + (minutes * 60) + seconds;
+                fileSize = Math.round((elapsed * parseInt(videoBitrateSelect.value) / 8000) * 10) / 10; // More accurate estimation based on bitrate
+                fileSizeDisplay.textContent = `${fileSize} MB`;
+            }
+
+            // Start timer
+            function startTimer() {
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+
+            // Stop timer
+            function stopTimer() {
+                clearInterval(timerInterval);
+                const elapsed = (hours * 3600) + (minutes * 60) + seconds;
+                finalDuration.textContent = formatTime();
+                finalFileSize.textContent = `${fileSize} MB`;
+            }
+
+            // Reset timer
+            function resetTimer() {
+                clearInterval(timerInterval);
+                seconds = 0;
+                minutes = 0;
+                hours = 0;
+                fileSize = 0;
+                timerDisplay.textContent = formatTime();
+                overlayTimer.textContent = formatTime();
+                fileSizeDisplay.textContent = '0 MB';
+            }
+
+            // Countdown before recording
+            function startCountdown(callback) {
+                if (!countdownEnabledCheckbox.checked) {
+                    callback();
+                    return;
+                }
+                
+                let count = 3;
+                countdownNumber.textContent = count;
+                countdownOverlay.style.display = 'flex';
+                
+                const countdownInterval = setInterval(() => {
+                    count--;
+                    if (count <= 0) {
+                        clearInterval(countdownInterval);
+                        countdownOverlay.style.display = 'none';
+                        callback();
+                    } else {
+                        countdownNumber.textContent = count;
+                        countdownNumber.style.animation = 'none';
+                        void countdownNumber.offsetWidth; // Trigger reflow
+                        countdownNumber.style.animation = 'countdown 1s ease';
+                    }
+                }, 1000);
+            }
+
+            // Get display media constraints based on user selection
+            function getDisplayMediaConstraints() {
+                const videoSource = videoSourceSelect.value;
+                const frameRate = parseInt(frameRateSelect.value);
+                const showCursor = showCursorCheckbox.checked;
+                
+                const constraints = {
+                    video: {
+                        displaySurface: videoSource,
+                        frameRate: { ideal: frameRate, max: frameRate },
+                        cursor: showCursor ? 'always' : 'never'
+                    },
+                    audio: false
+                };
+
+                // Set video quality
+                const quality = videoQualitySelect.value;
+                switch (quality) {
+                    case 'ultra':
+                        constraints.video.width = { ideal: 3840 };
+                        constraints.video.height = { ideal: 2160 };
+                        break;
+                    case 'high':
+                        constraints.video.width = { ideal: 1920 };
+                        constraints.video.height = { ideal: 1080 };
+                        break;
+                    case 'medium':
+                        constraints.video.width = { ideal: 1280 };
+                        constraints.video.height = { ideal: 720 };
+                        break;
+                    case 'low':
+                        constraints.video.width = { ideal: 854 };
+                        constraints.video.height = { ideal: 480 };
+                        break;
+                }
+
+                return constraints;
+            }
+
+            // Get audio constraints based on user selection
+            async function getAudioConstraints() {
+                const audioSource = audioSourceSelect.value;
+                const noiseReduction = recordMicCheckbox.checked;
+                
+                if (audioSource === 'none') {
+                    return false;
+                }
+
+                try {
+                    if (audioSource === 'mic' || audioSource === 'both') {
+                        return { 
+                            audio: { 
+                                echoCancellation: true, 
+                                noiseSuppression: noiseReduction,
+                                autoGainControl: true,
+                                sampleRate: 48000,
+                                channelCount: 2
+                            } 
+                        };
+                    } else if (audioSource === 'system') {
+                        // Note: System audio capture typically requires extensions or Electron
+                        // This is a placeholder for when browsers support it natively
+                        return { audio: true };
+                    }
+                } catch (error) {
+                    console.error('Error getting audio:', error);
+                    showToast('Error accessing microphone', 'error');
+                    return false;
+                }
+            }
+
+            // Toggle microphone during recording
+            async function toggleMicrophone() {
+                if (!stream) return;
+                
+                const audioTracks = stream.getAudioTracks();
+                if (audioTracks.length === 0) return;
+                
+                micEnabled = !micEnabled;
+                audioTracks.forEach(track => {
+                    track.enabled = micEnabled;
+                });
+                
+                micToggleBtn.innerHTML = micEnabled ? 
+                    '<i class="fas fa-microphone-slash"></i> Mute Mic' : 
+                    '<i class="fas fa-microphone"></i> Unmute Mic';
+                
+                showToast(micEnabled ? 'Microphone enabled' : 'Microphone muted', 'success', 1500);
+            }
+
+            // Toggle drawing mode
+            function toggleDrawingMode() {
+                if (!isRecording) return;
+                
+                toggleDrawing(!isDrawingActive);
+                
+                if (isDrawingActive) {
+                    showToast('Drawing mode enabled. Draw on your screen.', 'success', 2000);
+                } else {
+                    showToast('Drawing mode disabled', 'warning', 1500);
+                }
+            }
+
+            // Start screen recording
+            startBtn.addEventListener('click', async () => {
+                try {
+                    startCountdown(async () => {
+                        try {
+                            // Get display media constraints
+                            const displayConstraints = getDisplayMediaConstraints();
+                            
+                            // Get audio constraints
+                            const audioConstraints = await getAudioConstraints();
+                            
+                            // Start screen capture
+                            const displayStream = await navigator.mediaDevices.getDisplayMedia(displayConstraints);
+                            
+                            // Show resolution info
+                            const videoTrack = displayStream.getVideoTracks()[0];
+                            const settings = videoTrack.getSettings();
+                            resolutionInfo.textContent = `${settings.width}×${settings.height} @ ${settings.frameRate}FPS`;
+                            resolutionInfo.style.display = 'block';
+                            
+                            // Show watermark if enabled
+                            if (showWatermarkCheckbox.checked) {
+                                watermark.style.display = 'block';
+                            }
+                            
+                            // Show recording hotkey reminder
+                            recordingHotkey.style.display = 'block';
+                            
+                            // Start audio capture if needed
+                            if (audioConstraints && audioConstraints.audio && 
+                                (audioSourceSelect.value === 'mic' || audioSourceSelect.value === 'both')) {
+                                audioStream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+                                
+                                // Add audio track to the stream
+                                const audioTrack = audioStream.getAudioTracks()[0];
+                                displayStream.addTrack(audioTrack);
+                            }
+                            
+                            stream = displayStream;
+                            
+                            // Preview the screen capture
+                            previewVideo.srcObject = stream;
+                            
+                            // Set up media recorder
+                            const codec = videoCodecSelect.value;
+                            const mimeType = codec === 'h264' ? 'video/mp4;codecs=h264' : 
+                                            codec === 'vp8' ? 'video/webm;codecs=vp8' : 
+                                            'video/webm;codecs=vp9';
+                            
+                            const options = { 
+                                mimeType,
+                                audioBitsPerSecond: parseInt(audioBitrateSelect.value) * 1000,
+                                videoBitsPerSecond: parseInt(videoBitrateSelect.value) * 1000
+                            };
+                            
+                            try {
+                                mediaRecorder = new MediaRecorder(stream, options);
+                            } catch (e) {
+                                console.warn('Preferred codec not supported, falling back to default');
+                                mediaRecorder = new MediaRecorder(stream);
+                            }
+                            
+                            // Event handlers
+                            mediaRecorder.ondataavailable = (event) => {
+                                if (event.data.size > 0) {
+                                    recordedChunks.push(event.data);
+                                }
+                            };
+                            
+                            mediaRecorder.onstop = () => {
+                                const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+                                const url = URL.createObjectURL(blob);
+                                recordedVideo.src = url;
+                                
+                                // Show playback tab
+                                document.querySelector('[data-tab="playback"]').click();
+                                
+                                // Show download section
+                                downloadSection.style.display = 'block';
+                                
+                                // Stop all tracks
+                                stream.getTracks().forEach(track => track.stop());
+                                if (audioStream) {
+                                    audioStream.getTracks().forEach(track => track.stop());
+                                }
+                                
+                                // Reset recording state
+                                isRecording = false;
+                                isPaused = false;
+                                
+                                showToast('Recording saved successfully', 'success');
+                            };
+                            
+                            mediaRecorder.onpause = () => {
+                                isPaused = true;
+                                pauseBtn.disabled = true;
+                                resumeBtn.disabled = false;
+                                showToast('Recording paused', 'warning', 1500);
+                            };
+                            
+                            mediaRecorder.onresume = () => {
+                                isPaused = false;
+                                pauseBtn.disabled = false;
+                                resumeBtn.disabled = true;
+                                showToast('Recording resumed', 'success', 1500);
+                            };
+                            
+                            mediaRecorder.onerror = (e) => {
+                                console.error('MediaRecorder error:', e);
+                                showToast('Recording error occurred', 'error');
+                            };
+                            
+                            // Start recording
+                            mediaRecorder.start(500); // Collect data every 500ms
+                            startTimer();
+                            recordingIndicator.style.display = 'flex';
+                            recordingIndicatorContainer.style.display = 'flex';
+                            
+                            // Update button states
+                            startBtn.disabled = true;
+                            stopBtn.disabled = false;
+                            pauseBtn.disabled = false;
+                            micToggleBtn.disabled = false;
+                            annotateBtn.disabled = false;
+                            
+                            // Update UI for recording state
+                            startBtn.classList.add('btn-recording');
+                            startBtn.innerHTML = '<i class="fas fa-circle"></i> Recording...';
+                            isRecording = true;
+                            
+                            // Handle when user stops sharing via browser UI
+                            stream.getVideoTracks()[0].onended = () => {
+                                stopRecording();
+                            };
+                            
+                            if (audioStream) {
+                                audioStream.getAudioTracks()[0].onended = () => {
+                                    stopRecording();
+                                };
+                            }
+                            
+                            showToast('Recording started', 'success');
+                            
+                            // Initialize canvas for annotations
+                            initCanvas();
+                            if (annotationsEnabledCheckbox.checked) {
+                                setupDrawingTools();
+                            }
+                        } catch (error) {
+                            console.error('Error starting recording:', error);
+                            showToast(`Error: ${error.message}`, 'error');
+                            
+                            // Reset button states if error occurs
+                            startBtn.disabled = false;
+                            stopBtn.disabled = true;
+                            pauseBtn.disabled = true;
+                            micToggleBtn.disabled = true;
+                            annotateBtn.disabled = true;
+                            
+                            // Stop any tracks that might have been started
+                            if (stream) {
+                                stream.getTracks().forEach(track => track.stop());
+                            }
+                            if (audioStream) {
+                                audioStream.getTracks().forEach(track => track.stop());
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error in countdown:', error);
+                    showToast('Recording canceled', 'error');
+                }
+            });
+
+            // Stop recording
+            function stopRecording() {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    stopTimer();
+                    recordingIndicator.style.display = 'none';
+                    recordingIndicatorContainer.style.display = 'none';
+                    resolutionInfo.style.display = 'none';
+                    watermark.style.display = 'none';
+                    recordingHotkey.style.display = 'none';
+                    
+                    // Update button states
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    pauseBtn.disabled = true;
+                    resumeBtn.disabled = true;
+                    micToggleBtn.disabled = true;
+                    annotateBtn.disabled = true;
+                    
+                    // Update UI for stopped recording
+                    startBtn.classList.remove('btn-recording');
+                    startBtn.innerHTML = '<i class="fas fa-circle"></i> Start Recording';
+                    
+                    // Disable drawing if active
+                    if (isDrawingActive) {
+                        toggleDrawing(false);
+                    }
+                }
+            }
+
+            stopBtn.addEventListener('click', stopRecording);
+
+            // Pause recording
+            pauseBtn.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.pause();
+                }
+            });
+
+            // Resume recording
+            resumeBtn.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'paused') {
+                    mediaRecorder.resume();
+                }
+            });
+
+            // Toggle microphone
+            micToggleBtn.addEventListener('click', toggleMicrophone);
+
+            // Toggle drawing mode
+            annotateBtn.addEventListener('click', toggleDrawingMode);
+
+            // Download recording
+            downloadBtn.addEventListener('click', () => {
+                const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Set appropriate file extension based on codec
+                const extension = mediaRecorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
+                a.download = `recording-${new Date().toISOString().slice(0, 10)}.${extension}`;
+                
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+                
+                showToast('Download started', 'success');
+            });
+
+            // Save to cloud (mock functionality)
+            saveToCloudBtn.addEventListener('click', () => {
+                showToast('Cloud save feature coming soon!', 'warning');
+            });
+
+            // Copy share link (mock functionality)
+            copyLinkBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText('https://proscreen.example.com/share/rec123')
+                    .then(() => showToast('Share link copied to clipboard', 'success'))
+                    .catch(() => showToast('Failed to copy link', 'error'));
+            });
+
+            // Export as GIF (mock functionality)
+            exportGifBtn.addEventListener('click', () => {
+                showToast('GIF export feature coming soon!', 'warning');
+            });
+
+            // Trim video (mock functionality)
+            trimVideoBtn.addEventListener('click', () => {
+                showToast('Video trimming feature coming soon!', 'warning');
+            });
+
+            // Start new recording
+            newRecordingBtn.addEventListener('click', () => {
+                // Reset everything
+                recordedChunks = [];
+                recordedVideo.src = '';
+                previewVideo.srcObject = null;
+                downloadSection.style.display = 'none';
+                
+                // Clear canvas
+                if (ctx) {
+                    ctx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+                }
+                
+                // Show record tab
+                document.querySelector('[data-tab="record"]').click();
+                
+                // Reset timer
+                resetTimer();
+                
+                // Reset microphone state
+                micEnabled = true;
+                micToggleBtn.innerHTML = '<i class="fas fa-microphone-slash"></i> Mute Mic';
+                
+                // Reset drawing state
+                isDrawingActive = false;
+                annotateBtn.innerHTML = '<i class="fas fa-pen"></i> Draw';
+                annotateBtn.classList.remove('btn-recording');
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey) {
+                    switch (e.key) {
+                        case 'R': // Start/Stop recording
+                            e.preventDefault();
+                            if (isRecording) {
+                                stopRecording();
+                            } else if (!startBtn.disabled) {
+                                startBtn.click();
+                            }
+                            break;
+                        case 'P': // Pause/Resume
+                            e.preventDefault();
+                            if (isRecording) {
+                                if (isPaused) {
+                                    resumeBtn.click();
+                                } else {
+                                    pauseBtn.click();
+                                }
+                            }
+                            break;
+                        case 'M': // Toggle mic
+                            e.preventDefault();
+                            if (isRecording && !micToggleBtn.disabled) {
+                                toggleMicrophone();
+                            }
+                            break;
+                        case 'D': // Toggle drawing
+                            e.preventDefault();
+                            if (isRecording && annotationsEnabledCheckbox.checked) {
+                                toggleDrawingMode();
+                            }
+                            break;
+                        case 'S': // Quick stop
+                            e.preventDefault();
+                            if (isRecording) {
+                                stopRecording();
+                            }
+                            break;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
